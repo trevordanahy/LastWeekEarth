@@ -28,7 +28,7 @@ async def get_reliefweb(status):
     res = await response.json()
     cleaned_events = [event for event in res["data"]]
     event_list = {"events": cleaned_events}
-    return res
+    return event_list
 
 #Endpoints
 @LastWeekEarth.get("/")
@@ -59,7 +59,8 @@ async def Reliefweb_Provider():
   data = await asyncio.gather(
     get_reliefweb("current"),
     get_reliefweb("alert"))
-  return data
+  events = await reliefweb.general_parser(data)
+  return events
 
 
 #Async HTTP request setup end
