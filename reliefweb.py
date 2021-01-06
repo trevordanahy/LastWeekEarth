@@ -19,7 +19,7 @@ params = {
   "limit": 50
 }
 
-async def update_parser(description):
+def summary(description):
   updates = []
   desc_html = BeautifulSoup(description, "html.parser")
   source_dates = desc_html.findAll("a")
@@ -27,17 +27,21 @@ async def update_parser(description):
 
   for date, report in zip(source_dates, descriptions):
     event = []
-    report_date = date.text
     report_txt = report.text
     #the inner html of each p tag includes the date at the end in ()
     #update only grabs the text without the uneeded date
-    update = report_txt[0:report_txt.rfind("(")]
-
+    report = report_txt[0:report_txt.rfind("(")]
+    report_date = date.text
     event.append(report_date)
-    event.append(update)
+    event.append(report)
     updates.append(event)
+  
+  desc = updates[0][1]
+  #Some events have 50+ reports. Cutting off reports at 5 most recent.
+  reports = reports[:5:-1]
+  summary = [desc, updates]
 
-  return updates
+  return summary
   
 
 async def relevance_check(events):
@@ -46,7 +50,7 @@ async def relevance_check(events):
 async def img_parser(event_type):
   pass
 
-async def general_parser(data):
+def general_parser(data):
   events = []
   for event in data["events"]:
     description = event["fields"]["description-html"]
@@ -57,9 +61,9 @@ async def general_parser(data):
     event_tmp["imgPath"] = "placeholder"
     event_tmp["title"] = event["fields"]["name"]
     event_tmp["category"] = event["fields"]["primary_type"]["name"]
-    event_tmp["updates"] = await update_parser(description)
-    #description grabs the 1st update as it is the most descriptive of the event. 
-    event_tmp["description"] = event_tmp["updates"][0][1]
+    summary = summary(description)
+    event_tmp["description"] = summary[0]
+    event_tmp["updates"] = summary[1]
     event_tmp["path"] = None
     #the location from reliefweb is listed in lon lat order in a dict , we want the location in a list with lat first
     event_tmp["location"] = [point for point in event["fields"]["primary_country"]["location"].values()][::-1]

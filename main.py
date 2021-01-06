@@ -53,7 +53,7 @@ async def Reliefweb_Provider():
   UN OCHA Reliefweb API and returns the json results
   """
   data = await get_reliefweb()
-  events = await reliefweb.general_parser(data)
+  events = reliefweb.general_parser(data)
   return data
 
 
