@@ -19,8 +19,19 @@ params = {
   "limit": 50
 }
 
-def summary(description):
-  updates = []
+def summary_maker(description):
+  """
+  Generates a summary with the initial event report as the description
+  and the 5 most recent situation reports. 
+
+  Args:
+      description (string): html with p and a tags for each report, each a tag
+      contains the source and date of the report.
+
+  Returns:
+      list : two value list with description and list of situation reports
+  """
+  reports = []
   desc_html = BeautifulSoup(description, "html.parser")
   source_dates = desc_html.findAll("a")
   descriptions = desc_html.findAll("p")
@@ -34,12 +45,12 @@ def summary(description):
     report_date = date.text
     event.append(report_date)
     event.append(report)
-    updates.append(event)
+    reports.append(event)
   
-  desc = updates[0][1]
+  desc = reports[0][1]
   #Some events have 50+ reports. Cutting off reports at 5 most recent.
   reports = reports[:5:-1]
-  summary = [desc, updates]
+  summary = [desc, reports]
 
   return summary
   
@@ -61,7 +72,7 @@ def general_parser(data):
     event_tmp["imgPath"] = "placeholder"
     event_tmp["title"] = event["fields"]["name"]
     event_tmp["category"] = event["fields"]["primary_type"]["name"]
-    summary = summary(description)
+    summary = summary_maker(description)
     event_tmp["description"] = summary[0]
     event_tmp["updates"] = summary[1]
     event_tmp["path"] = None
