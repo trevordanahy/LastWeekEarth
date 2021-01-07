@@ -20,17 +20,27 @@ async def startup_event():
 
 
 async def get_reliefweb():
+  """Fetches current humanitarian with current and alert status from the 
+  UN OCHA Reliefweb API.
+
+  Returns:
+      cleaned_events(list): list of event objects from Reliefweb API
+  """
   async with session.post(reliefweb.url, json=reliefweb.params) as response:
     res = await response.json()
     cleaned_events = [event for event in res["data"]]
-    event_list = {"events": cleaned_events}
-    return event_list
+    return cleaned_events
 
 #Endpoints
 @LastWeekEarth.get("/")
 async def Homepage(request: Request):
-  """
-  returns the homepage template
+  """returns the homepage template
+
+  Args:
+      request FastAPI Object: FastAPI object for handling get requests
+
+  Returns:
+      html(str): returns homepage
   """
   return templates.TemplateResponse("home.html", {"request": request})
 
@@ -48,13 +58,16 @@ async def Eonet_Provider():
 
 @LastWeekEarth.get("/reliefweb/")
 async def Reliefweb_Provider():
-  """
-  fetches current humanitarian with current and alert status from the 
-  UN OCHA Reliefweb API and returns the json results
+  """Standardizes data from get_reliefweb function and removes unrelevant data from the dataset
+  Purpose is to 
+
+  Returns:
+      relevent_events(list) : JSON, list of standardized event objects and checked for relevancy
   """
   data = await get_reliefweb()
   events = reliefweb.general_parser(data)
-  return data
+  relevent_events = reliefweb.relevance_check(events)
+  return relevent_events
 
 
 #Async HTTP request setup end
